@@ -2,61 +2,52 @@
 'use strict';
 
 export var scriptProperties = createScriptProperties()
-    .addCombo({
-        name: 'day',
-        label: 'Day',
-        options: [{
-            label: 'Disabled',
-            value: '0'
-        }, {
-            label: 'Shortenned',
-            value: '1'
-        }, {
-            label: 'Full',
-            value: '2'
-        }]
-    })
-    .addCombo({
-        name: 'month',
-        label: 'Month',
-        options: [{
-            label: 'Shortenned',
-            value: '1'
-        }, {
-            label: 'Full',
-            value: '2'
-        }]
+    .addText({
+        name: 'format',
+        label: 'Format',
+        value: '{day}, {month} {date}, {year}'
     })
     .addCheckbox({
-        name: 'displayYear',
-        label: 'Display Year',
+        name: 'shortennedDay',
+        label: 'Shortenned Day Name',
+        value: false
+    })
+    .addCheckbox({
+        name: 'shortennedMonth',
+        label: 'Shortenned Month Name',
+        value: false
+    })
+    .addCheckbox({
+        name: 'ordinalSuffix',
+        label: 'Add Ordinal Suffix (e.g. 3rd not 3)',
         value: false
     })
     .finish();
 
 export function update(value) {
-    if (scriptProperties.day == 1) {
-        var dayVar = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    var dayVar = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    var monthVar = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    if (scriptProperties.shortennedDay) {
+        dayVar = dayVar.map(day => day.slice(0, 3));
     }
-    else if (scriptProperties.day == 2) {
-        var dayVar = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-    }
-    if (scriptProperties.month == 1) {
-        var monthVar = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    }
-    else {
-        var monthVar = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    if (scriptProperties.shortennedMonth) {
+        monthVar = monthVar.map(month => month.slice(0, 3));
     }
 
     let time = new Date();
-    if (dayVar) { var day = dayVar[time.getDay()] }
+    var day = dayVar[time.getDay()]
     var date = time.getDate()
-    var month = monthVar[time.getMonth()]
+    if (scriptProperties.ordinalSuffix) {
+        date += ['st', 'nd', 'rd'][((date + 90) % 100 - 10) % 10 - 1] || 'th'
+    }
+    var monthNumber = time.getMonth() + 1
+    var month = monthVar[monthNumber - 1]
     var year = time.getFullYear()
 
-    if (day) { value = day + ", " }
-    else { value = "" }
-    value += month + " " + date
-    if (scriptProperties.displayYear) { value += ", " + year }
+    value = scriptProperties.format.replace('{day}', day)
+    value = value.replace('{date}', date)
+    value = value.replace('{month}', month)
+    value = value.replace('{month number}', monthNumber)
+    value = value.replace('{year}', year)
     return value;
 }
