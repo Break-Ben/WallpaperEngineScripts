@@ -1,9 +1,21 @@
-// Script by Break :) \\
-'use strict';
+/* Asset Name: Modular Date
+ * Version: 1.2.1
+ * Author: Break (Break-Ben)
+ * Author link: https://github.com/Break-Ben
+ * Asset link: https://steamcommunity.com/sharedfiles/filedetails/?id=2908153534
+ */
+'use strict'
 
-var dayVar = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-var monthVar = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+// Please note: Do not remove this line or asset references may break.
+export let __workshopId = '2908153534';
 
+// Constants
+const DAYS_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const MONTHS_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const DAYS_SHORT = DAYS_LONG.map(day => day.slice(0, 3))
+const MONTHS_SHORT = MONTHS_LONG.map(month => month.slice(0, 3))
+
+// Script properties
 export var scriptProperties = createScriptProperties()
     .addText({
         name: 'format',
@@ -11,50 +23,46 @@ export var scriptProperties = createScriptProperties()
         value: '{day}, {month} {date}, {year}'
     })
     .addCheckbox({
-        name: 'shortennedDay',
-        label: 'Shortenned Day Name',
+        name: 'shortDay',
+        label: 'Shortened Day Name',
         value: false
     })
     .addCheckbox({
-        name: 'shortennedMonth',
-        label: 'Shortenned Month Name',
+        name: 'shortMonth',
+        label: 'Shortened Month Name',
         value: false
     })
     .addCheckbox({
-        name: 'shortennedYear',
-        label: 'Shortenned Year Number',
+        name: 'shortYear',
+        label: 'Shortened Year Number',
         value: false
     })
     .addCheckbox({
-        name: 'ordinalSuffix',
-        label: 'Add Ordinal Suffix (e.g. 3rd not 3)',
+        name: 'suffix',
+        label: 'Ordinal Suffix (e.g. 1st or 2nd)',
         value: false
     })
-    .finish();
+    .finish()
 
-export function update() {
-    let time = new Date();
-    var date = time.getDate()
-    var monthNumber = time.getMonth() + 1
-    var year = time.getFullYear()
+// Updating text
+export function update(value) {
+    const DAYS = scriptProperties.shortDay ? DAYS_SHORT : DAYS_LONG
+    const MONTHS = scriptProperties.shortMonth ? MONTHS_SHORT : MONTHS_LONG
+    const TIME = new Date()
 
-    if (scriptProperties.shortennedDay) {
-        dayVar = dayVar.map(day => day.slice(0, 3));
-    }
-    if (scriptProperties.shortennedMonth) {
-        monthVar = monthVar.map(month => month.slice(0, 3));
-    }
-    if (scriptProperties.shortennedYear) {
+    let date = TIME.getDate()
+    let year = TIME.getFullYear()
+    if (scriptProperties.suffix)
+        date += ['st', 'nd', 'rd'][((date % 10) - 1) % 10] || 'th'
+    if (scriptProperties.shortYear)
         year %= 100
-    }
-    if (scriptProperties.ordinalSuffix) {
-        date += ['st', 'nd', 'rd'][((date + 90) % 100 - 10) % 10 - 1] || 'th'
-    }
 
-    return scriptProperties.format
-        .replace('{day}', dayVar[time.getDay()])
+    value = scriptProperties.format
+        .replace('{day}', DAYS[TIME.getDay()])
         .replace('{date}', date)
-        .replace('{month}', monthVar[monthNumber - 1])
-        .replace('{month number}', monthNumber)
-        .replace('{year}', year);
+        .replace('{month}', MONTHS[TIME.getMonth()])
+        .replace('{month number}', TIME.getMonth() + 1)
+        .replace('{year}', year)
+
+    return value
 }
